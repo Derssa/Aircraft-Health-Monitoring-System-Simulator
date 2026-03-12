@@ -4,52 +4,7 @@ A production-style, event-driven microservice architecture simulating an Aircraf
 
 ## Architecture Diagram
 
-```mermaid
-flowchart TD
-    subgraph ClientLayer["External Access (Public Port 80)"]
-        UI[React Dashboard]
-        Proxy[Nginx Reverse Proxy]
-    end
-
-    subgraph EdgeLayer["Edge (Aircraft Simulation)"]
-        SS[Sensor Simulator]
-    end
-
-    subgraph KafkaLayer["Event Streaming (Kafka)"]
-        KR{{"telemetry.raw"}}
-        KV{{"telemetry.validated"}}
-        KA{{"alerts"}}
-    end
-
-    subgraph LogicLayer["Backend Microservices"]
-        TIS[Telemetry Ingestion Service]
-        VS[Validation Service]
-    end
-
-    subgraph DataLayer["Storage & Gateway"]
-        PG[(PostgreSQL)]
-        API[API Gateway]
-    end
-
-    %% Routing
-    Proxy -- "/" --> UI
-    Proxy -- "/api" --> API
-
-    %% Pipeline
-    SS -- "Produces" --> KR
-    KR -- "Consumed by" --> TIS
-    
-    TIS -- "Produces" --> KV
-    TIS -- "Writes" --> PG
-    
-    KV -- "Consumed by" --> VS
-    VS -- "Produces" --> KA
-    VS -- "Writes" --> PG
-    
-    KA -- "Consumed by Dashboard (via SSE/WS)" -.-> UI
-    
-    PG -. "Queries" .-> API
-```
+<img width="2816" height="1536" alt="AHMS" src="https://github.com/user-attachments/assets/3a765ae0-3da7-46ab-b251-b3848eeaad06" />
 
 ## System Components
 
@@ -88,6 +43,6 @@ The system follows a "pipes and filters" pattern using Kafka topics:
 ## Running Locally
 
 1.  **Prerequisites**: Docker and Docker Compose installed.
-2.  **Boot**: Run `docker-compose up --build`
+2.  **Boot**: Run `docker-compose up --build -d`
 3.  **Access**: Open [http://localhost](http://localhost) (Nginx handles the routing).
 4.  **Clean up**: Run `docker-compose down -v` to wipe data and containers.
