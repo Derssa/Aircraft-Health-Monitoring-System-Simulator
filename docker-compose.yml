@@ -27,23 +27,23 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    # Internal communication only
-    # ports:
-    #   - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: postgres
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     POSTGRES_DB: ${POSTGRES_DB}
+  #   # Internal communication only
+  #   # ports:
+  #   #   - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
 
   sensor-simulator:
     build:
@@ -63,8 +63,8 @@ services:
     container_name: telemetry-ingestion-service
     restart: unless-stopped
     depends_on:
-      postgres:
-        condition: service_healthy
+      # postgres:
+      #   condition: service_healthy
       kafka:
         condition: service_started
     environment:
@@ -82,8 +82,8 @@ services:
     container_name: validation-service
     restart: unless-stopped
     depends_on:
-      postgres:
-        condition: service_healthy
+      # postgres:
+      #   condition: service_healthy
       kafka:
         condition: service_started
     environment:
@@ -100,9 +100,9 @@ services:
       dockerfile: api-gateway/Dockerfile
     container_name: api-gateway
     restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
+    # depends_on:
+      # postgres:
+      #   condition: service_healthy
     # Internal communication only
     # ports:
     #   - "3000:3000"
@@ -139,5 +139,5 @@ services:
       - api-gateway
       - dashboard
 
-volumes:
-  postgres_data:
+# volumes:
+#   postgres_data:
