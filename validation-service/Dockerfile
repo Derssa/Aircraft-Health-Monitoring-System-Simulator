@@ -12,8 +12,7 @@ RUN npm install
 # Copy source
 COPY shared/ shared/
 COPY validation-service/ validation-service/
-COPY tsconfig.base.json ./
-COPY certs ./certs
+COPY tsconfig.json ./
 
 # Build dependencies
 RUN npm run build --workspace=shared
