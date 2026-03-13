@@ -13,6 +13,7 @@ RUN npm install
 COPY shared/ shared/
 COPY api-gateway/ api-gateway/
 COPY tsconfig.base.json ./
+COPY certs ./certs
 
 # Build dependencies
 RUN npm run build --workspace=shared

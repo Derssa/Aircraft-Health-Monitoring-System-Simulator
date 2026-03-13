@@ -13,6 +13,7 @@ RUN npm install
 COPY shared/ shared/
 COPY telemetry-ingestion-service/ telemetry-ingestion-service/
 COPY tsconfig.base.json ./
+COPY certs ./certs
 
 # Build dependencies
 RUN npm run build --workspace=shared

@@ -13,6 +13,7 @@ RUN npm install
 COPY shared/ shared/
 COPY sensor-simulator/ sensor-simulator/
 COPY tsconfig.base.json ./
+COPY certs ./certs
 
 # Build dependencies
 RUN npm run build --workspace=shared
