@@ -74,9 +74,7 @@ function App() {
     fetchHistory();
 
     // 2. WebSocket for real-time updates
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = API_URL.includes('http') ? API_URL.replace(/^https?:\/\//, '') : window.location.host + API_URL;
-    const wsUrl = `${protocol}//${host}`;
+    const wsUrl = API_URL.replace(/^http/, 'ws');
     
     console.log('Connecting to WebSocket:', wsUrl);
     const ws = new WebSocket(wsUrl);
