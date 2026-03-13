@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   LineChart,
   Line,
@@ -9,7 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Activity, AlertTriangle, Thermometer, Droplets, Wind, Settings, ChevronDown, ChevronUp, Bell, X } from 'lucide-react';
+import { Activity, AlertTriangle, Thermometer, Droplets, Wind, Settings, Bell, X } from 'lucide-react';
 
 interface Telemetry {
   id: string;

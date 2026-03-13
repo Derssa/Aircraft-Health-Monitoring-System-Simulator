@@ -53,7 +53,7 @@ export async function initializeDatabase() {
     // Indexes for querying history efficiently
     await client.query(`CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON telemetry(timestamp DESC)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_alerts_timestamp ON alerts(timestamp DESC)`);
-    
+
     await client.query('COMMIT');
     console.log('Database schema initialized.');
   } catch (err) {
@@ -72,7 +72,7 @@ export async function cleanupOldData() {
   try {
     const resultTelemetry = await pool.query("DELETE FROM telemetry WHERE timestamp < NOW() - INTERVAL '1 hour'");
     const resultAlerts = await pool.query("DELETE FROM alerts WHERE timestamp < NOW() - INTERVAL '1 hour'");
-    
+
     if (resultTelemetry.rowCount! > 0 || resultAlerts.rowCount! > 0) {
       console.log(`[Retention] Cleaned up ${resultTelemetry.rowCount} telemetry records and ${resultAlerts.rowCount} alerts older than 1 hour.`);
     }

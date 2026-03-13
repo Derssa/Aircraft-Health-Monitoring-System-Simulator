@@ -1,4 +1,4 @@
-version: '3.8'
+# version: '3.8'
 
 services:
   # zookeeper:
@@ -66,10 +66,10 @@ services:
     container_name: telemetry-ingestion-service
     restart: unless-stopped
     # depends_on:
-    #   postgres:
-    #     condition: service_healthy
-    #   kafka:
-    #     condition: service_started
+      # postgres:
+      #   condition: service_healthy
+      # kafka:
+      #   condition: service_started
     environment:
       - KAFKA_BROKERS=${KAFKA_BROKERS}
       - KAFKA_CA_PATH=${KAFKA_CA_PATH}
@@ -88,10 +88,10 @@ services:
     container_name: validation-service
     restart: unless-stopped
     # depends_on:
-    #   postgres:
-    #     condition: service_healthy
-    #   kafka:
-    #     condition: service_started
+      # postgres:
+      #   condition: service_healthy
+      # kafka:
+      #   condition: service_started
     environment:
       - KAFKA_BROKERS=${KAFKA_BROKERS}
       - KAFKA_CA_PATH=${KAFKA_CA_PATH}
@@ -110,8 +110,8 @@ services:
     container_name: api-gateway
     restart: unless-stopped
     # depends_on:
-    #   postgres:
-    #     condition: service_healthy
+      # postgres:
+      #   condition: service_healthy
     # Internal communication only
     # ports:
     #   - "3000:3000"
