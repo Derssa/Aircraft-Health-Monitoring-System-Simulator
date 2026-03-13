@@ -1,49 +1,49 @@
 version: '3.8'
 
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.3.0
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
+  # zookeeper:
+  #   image: confluentinc/cp-zookeeper:7.3.0
+  #   container_name: zookeeper
+  #   environment:
+  #     ZOOKEEPER_CLIENT_PORT: 2181
+  #     ZOOKEEPER_TICK_TIME: 2000
+  #   ports:
+  #     - "2181:2181"
 
-  kafka:
-    image: confluentinc/cp-kafka:7.3.0
-    container_name: kafka
-    depends_on:
-      - zookeeper
-    # Internal communication only
-    # ports:
-    #   - "9092:9092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+  # kafka:
+  #   image: confluentinc/cp-kafka:7.3.0
+  #   container_name: kafka
+  #   depends_on:
+  #     - zookeeper
+  #   # Internal communication only
+  #   # ports:
+  #   #   - "9092:9092"
+  #   environment:
+  #     KAFKA_BROKER_ID: 1
+  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+  #     KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
 
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    # Internal communication only
-    # ports:
-    #   - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: postgres
+  #   environment:
+  #     POSTGRES_USER: ${POSTGRES_USER}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     POSTGRES_DB: ${POSTGRES_DB}
+  #   # Internal communication only
+  #   # ports:
+  #   #   - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
 
   sensor-simulator:
     build:
@@ -51,10 +51,13 @@ services:
       dockerfile: sensor-simulator/Dockerfile
     container_name: sensor-simulator
     restart: unless-stopped
-    depends_on:
-      - kafka
+    # depends_on:
+    #   - kafka
     environment:
       - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_CA_PATH=${KAFKA_CA_PATH}
+      - KAFKA_CERT_PATH=${KAFKA_CERT_PATH}
+      - KAFKA_KEY_PATH=${KAFKA_KEY_PATH}
 
   telemetry-ingestion-service:
     build:
@@ -62,13 +65,16 @@ services:
       dockerfile: telemetry-ingestion-service/Dockerfile
     container_name: telemetry-ingestion-service
     restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      kafka:
-        condition: service_started
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    #   kafka:
+    #     condition: service_started
     environment:
       - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_CA_PATH=${KAFKA_CA_PATH}
+      - KAFKA_CERT_PATH=${KAFKA_CERT_PATH}
+      - KAFKA_KEY_PATH=${KAFKA_KEY_PATH}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_USER=${DB_USER}
@@ -81,13 +87,16 @@ services:
       dockerfile: validation-service/Dockerfile
     container_name: validation-service
     restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      kafka:
-        condition: service_started
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    #   kafka:
+    #     condition: service_started
     environment:
       - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_CA_PATH=${KAFKA_CA_PATH}
+      - KAFKA_CERT_PATH=${KAFKA_CERT_PATH}
+      - KAFKA_KEY_PATH=${KAFKA_KEY_PATH}
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_USER=${DB_USER}
@@ -100,9 +109,9 @@ services:
       dockerfile: api-gateway/Dockerfile
     container_name: api-gateway
     restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
     # Internal communication only
     # ports:
     #   - "3000:3000"
@@ -113,6 +122,10 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - PORT=${PORT}
+      - KAFKA_BROKERS=${KAFKA_BROKERS}
+      - KAFKA_CA_PATH=${KAFKA_CA_PATH}
+      - KAFKA_CERT_PATH=${KAFKA_CERT_PATH}
+      - KAFKA_KEY_PATH=${KAFKA_KEY_PATH}
 
   dashboard:
     build:
@@ -139,5 +152,5 @@ services:
       - api-gateway
       - dashboard
 
-volumes:
-  postgres_data:
+# volumes:
+#   postgres_data:

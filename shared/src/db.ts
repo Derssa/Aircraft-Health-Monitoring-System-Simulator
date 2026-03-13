@@ -7,7 +7,8 @@ export const pool = new Pool({
   port: parseInt(process.env.DB_PORT || '5432', 10),
   user: process.env.DB_USER || 'ahms_user',
   password: process.env.DB_PASSWORD || 'ahms_password',
-  database: process.env.DB_NAME || 'ahms_db'
+  database: process.env.DB_NAME || 'ahms_db',
+  ssl: { rejectUnauthorized: false }
 });
 
 export async function initializeDatabase() {

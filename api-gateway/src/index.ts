@@ -1,10 +1,56 @@
 import express from 'express';
 import cors from 'cors';
-import { pool } from 'shared';
+import { createServer } from 'http';
+import { WebSocket, WebSocketServer } from 'ws';
+import { pool, kafkaClient } from 'shared';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+const server = createServer(app);
+const wss = new WebSocketServer({ server });
+
+// WebSocket connection handling
+wss.on('connection', (ws: WebSocket) => {
+  console.log('New client connected');
+  ws.on('close', () => console.log('Client disconnected'));
+});
+
+// Broadcast helper
+const broadcast = (data: any) => {
+  const message = JSON.stringify(data);
+  wss.clients.forEach((client: any) => {
+    if (client.readyState === (WebSocket as any).OPEN) {
+      client.send(message);
+    }
+  });
+};
+
+// Kafka Consumer for real-time updates
+const consumer = kafkaClient.consumer({ groupId: 'api-gateway-ws-group' });
+
+async function startKafka() {
+  await consumer.connect();
+  await consumer.subscribe({ topics: ['telemetry.validated', 'alerts'], fromBeginning: false });
+
+  await consumer.run({
+    eachMessage: async ({ topic, message }: any) => {
+      if (!message.value) return;
+      try {
+        const payload = JSON.parse(message.value.toString());
+        broadcast({
+          type: topic === 'alerts' ? 'ALERT' : 'TELEMETRY',
+          data: payload
+        });
+      } catch (err) {
+        console.error('Error broadcasting message:', err);
+      }
+    }
+  });
+}
+
+startKafka().catch(console.error);
 
 app.get('/telemetry/latest', async (req, res) => {
   try {
@@ -21,7 +67,6 @@ app.get('/telemetry/latest', async (req, res) => {
 
 app.get('/telemetry/history', async (req, res) => {
   try {
-    // Return last 1000 records for graphs
     const { rows } = await pool.query(`
       SELECT * FROM telemetry
       ORDER BY timestamp DESC
@@ -55,7 +100,7 @@ app.get('/system/status', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`API Gateway listening on port ${PORT}`);
+const PORT = parseInt(process.env.PORT || '3000', 10);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`API Gateway with WebSockets listening on 0.0.0.0:${PORT}`);
 });
