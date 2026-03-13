@@ -38,7 +38,8 @@ function App() {
   const [showAlerts, setShowAlerts] = useState(window.innerWidth > 1024);
 
   useEffect(() => {
-    const fetchData = async () => {
+    // 1. Initial history fetch
+    const fetchHistory = async () => {
       try {
         const [telRes, alertsRes] = await Promise.all([
           fetch(`${API_URL}/telemetry/history`),
@@ -55,7 +56,6 @@ function App() {
             cabin_pressure: Number(t.cabin_pressure),
             fuel_flow: Number(t.fuel_flow),
           }));
-          // API returns newest-first, reverse to get oldest-first for chart
           setTelemetry(parsedTelemetry.reverse());
 
           const alertsData: any[] = await alertsRes.json();
@@ -65,18 +65,65 @@ function App() {
           }));
           setAlerts(parsedAlerts);
           setIsConnected(true);
-        } else {
-          setIsConnected(false);
         }
       } catch (err) {
-        setIsConnected(false);
-        console.error('Failed to fetch data', err);
+        console.error('Failed to fetch history', err);
       }
     };
 
-    fetchData();
-    const interval = setInterval(fetchData, 2000);
-    return () => clearInterval(interval);
+    fetchHistory();
+
+    // 2. WebSocket for real-time updates
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = API_URL.includes('http') ? API_URL.replace(/^https?:\/\//, '') : window.location.host + API_URL;
+    const wsUrl = `${protocol}//${host}`;
+    
+    console.log('Connecting to WebSocket:', wsUrl);
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+      console.log('WebSocket Connected');
+      setIsConnected(true);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'TELEMETRY') {
+          const t = message.data;
+          const parsed: Telemetry = {
+            ...t,
+            engine_temperature: Number(t.engine_temperature),
+            engine_vibration: Number(t.engine_vibration),
+            hydraulic_pressure: Number(t.hydraulic_pressure),
+            cabin_pressure: Number(t.cabin_pressure),
+            fuel_flow: Number(t.fuel_flow),
+          };
+          setTelemetry((prev: Telemetry[]) => [...prev.slice(-999), parsed]);
+        } else if (message.type === 'ALERT') {
+          const a = message.data;
+          const parsed: Alert = {
+            ...a,
+            value: Number(a.value),
+          };
+          setAlerts((prev: Alert[]) => [parsed, ...prev.slice(0, 999)]);
+        }
+      } catch (err) {
+        console.error('Error processing WS message', err);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket Disconnected');
+      setIsConnected(false);
+    };
+
+    ws.onerror = (err) => {
+      console.error('WebSocket Error', err);
+      setIsConnected(false);
+    };
+
+    return () => ws.close();
   }, []);
 
   const latest = telemetry[telemetry.length - 1] || null;
