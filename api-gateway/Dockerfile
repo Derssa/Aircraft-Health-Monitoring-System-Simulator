@@ -12,7 +12,7 @@ RUN npm install
 # Copy source
 COPY shared/ shared/
 COPY api-gateway/ api-gateway/
-COPY tsconfig.json ./
+COPY tsconfig.base.json ./
 
 # Build dependencies
 RUN npm run build --workspace=shared
