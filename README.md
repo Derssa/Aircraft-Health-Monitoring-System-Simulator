@@ -2,6 +2,8 @@
 
 A production-style, event-driven microservice architecture simulating an Aircraft Health Monitoring System (AHMS). This project demonstrates a complete real-time telemetry pipeline, from sensor simulation to live visualization.
 
+Live demo: https://aircraft-health-monitoring-system-s-git-d9a8dc-derssas-projects.vercel.app/
+
 ## Architecture Diagram
 
 <img width="2816" height="1536" alt="AHMS" src="https://github.com/user-attachments/assets/3a765ae0-3da7-46ab-b251-b3848eeaad06" />
