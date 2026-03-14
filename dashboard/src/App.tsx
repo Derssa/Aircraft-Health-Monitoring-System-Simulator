@@ -79,6 +79,7 @@ function App() {
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
+      console.log('WebSocket Connected');
       setIsConnected(true);
     };
 
@@ -110,10 +111,12 @@ function App() {
     };
 
     ws.onclose = () => {
+      console.log('WebSocket Disconnected');
       setIsConnected(false);
     };
 
     ws.onerror = (err) => {
+      console.error('WebSocket Error', err);
       setIsConnected(false);
     };
 
