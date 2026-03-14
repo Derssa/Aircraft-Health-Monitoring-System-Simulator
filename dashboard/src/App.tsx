@@ -75,12 +75,10 @@ function App() {
 
     // 2. WebSocket for real-time updates
     const wsUrl = API_URL.replace(/^http/, 'ws');
-    
-    console.log('Connecting to WebSocket:', wsUrl);
+
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
-      console.log('WebSocket Connected');
       setIsConnected(true);
     };
 
@@ -112,12 +110,10 @@ function App() {
     };
 
     ws.onclose = () => {
-      console.log('WebSocket Disconnected');
       setIsConnected(false);
     };
 
     ws.onerror = (err) => {
-      console.error('WebSocket Error', err);
       setIsConnected(false);
     };
 
@@ -155,9 +151,9 @@ function App() {
             </div>
           </div>
         </div>
-        
-        <button 
-          className="alerts-fab" 
+
+        <button
+          className="alerts-fab"
           onClick={() => setShowAlerts(!showAlerts)}
           aria-label="Toggle alerts"
         >
