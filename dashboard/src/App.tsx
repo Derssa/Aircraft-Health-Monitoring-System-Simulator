@@ -51,7 +51,7 @@ function App() {
           const parsedTelemetry: Telemetry[] = telData.map((t) => ({
             ...t,
             engine_temperature: Number(t.engine_temperature),
-            engine_vibration: Number(t.engine_vibration),
+            engine_vibration: Math.abs(Number(t.engine_vibration)),
             hydraulic_pressure: Number(t.hydraulic_pressure),
             cabin_pressure: Number(t.cabin_pressure),
             fuel_flow: Number(t.fuel_flow),
@@ -91,7 +91,7 @@ function App() {
           const parsed: Telemetry = {
             ...t,
             engine_temperature: Number(t.engine_temperature),
-            engine_vibration: Number(t.engine_vibration),
+            engine_vibration: Math.abs(Number(t.engine_vibration)),
             hydraulic_pressure: Number(t.hydraulic_pressure),
             cabin_pressure: Number(t.cabin_pressure),
             fuel_flow: Number(t.fuel_flow),
@@ -134,6 +134,14 @@ function App() {
       cabin: t.cabin_pressure,
     }));
   }, [telemetry]);
+
+  const getVibrationColor = (vibration: number) => {
+    if (vibration < 0.5) return 'var(--accent-green)';
+    if (vibration <= 1.5) return 'var(--accent-yellow)';
+    return 'var(--accent-red)';
+  };
+
+  const currentVibrationColor = latest ? getVibrationColor(latest.engine_vibration) : 'var(--accent-yellow)';
 
   return (
     <div className="app-container">
@@ -183,12 +191,12 @@ function App() {
               </div>
               <div className="stat-card">
                 <div className="stat-label">
-                  <Activity size={16} color="var(--accent-yellow)" />
+                  <Activity size={16} color={currentVibrationColor} />
                   Vibration
                 </div>
-                <div className="stat-value">
+                <div className="stat-value" style={{ color: currentVibrationColor }}>
                   {latest ? latest.engine_vibration.toFixed(2) : '--'}
-                  <span className="stat-unit">g</span>
+                  <span className="stat-unit" style={{ color: 'var(--text-secondary)' }}>g</span>
                 </div>
               </div>
               <div className="stat-card">
