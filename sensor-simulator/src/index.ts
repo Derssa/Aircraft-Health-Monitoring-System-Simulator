@@ -1,3 +1,4 @@
+import express from "express";
 import { kafkaClient, Telemetry } from 'shared';
 
 const producer = kafkaClient.producer();
@@ -11,7 +12,7 @@ let currentFuel = 500;
 
 function generateData(): Telemetry {
   const timestamp = new Date().toISOString();
-  
+
   // Drift and fluctuations
   currentTemp += (Math.random() - 0.5) * 2;
   currentVib += (Math.random() - 0.5) * 0.1;
@@ -21,7 +22,7 @@ function generateData(): Telemetry {
 
   let temp = currentTemp;
   let vib = currentVib;
-  
+
   // Random anomaly injection
   const r = Math.random();
   if (r < 0.05) { // 5% chance of critical temperature spike
@@ -43,6 +44,21 @@ function generateData(): Telemetry {
   };
 }
 
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get("/", (req, res) => {
+  res.send("Sensor simulator running");
+});
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", service: "sensor-simulator" });
+});
+
+app.listen(PORT, () => {
+  console.log(`Health server running on port ${PORT}`);
+});
+
 async function start() {
   console.log('Starting sensor simulator...');
   await producer.connect();
@@ -57,7 +73,7 @@ async function start() {
 
     const payload = generateData();
     console.log(`Sending telemetry at ${payload.timestamp}...`);
-    
+
     try {
       await producer.send({
         topic: 'telemetry.raw',

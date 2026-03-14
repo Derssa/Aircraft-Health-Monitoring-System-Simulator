@@ -1,3 +1,4 @@
+import express from "express";
 import { kafkaClient, pool, Telemetry, Alert } from 'shared';
 
 const consumer = kafkaClient.consumer({ groupId: 'validation-group' });
@@ -40,7 +41,7 @@ async function processTelemetry(telemetry: Telemetry) {
   if (engineTempHistory.length > SMA_WINDOW) {
     engineTempHistory.shift();
   }
-  
+
   if (engineTempHistory.length === SMA_WINDOW) {
     const sma = engineTempHistory.reduce((a, b) => a + b, 0) / SMA_WINDOW;
     // If the diff between current temp and SMA is continuously growing or > 15 without a single spike
@@ -94,6 +95,21 @@ async function start() {
     }
   });
 }
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get("/", (req, res) => {
+  res.send("Validation service running");
+});
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", service: "validation" });
+});
+
+app.listen(PORT, () => {
+  console.log(`Health server running on port ${PORT}`);
+});
 
 start().catch(err => {
   console.error('Validation service failed:', err);

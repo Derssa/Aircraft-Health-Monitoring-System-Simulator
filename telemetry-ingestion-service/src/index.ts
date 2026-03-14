@@ -1,3 +1,4 @@
+import express from "express";
 import { kafkaClient, pool, initializeDatabase, cleanupOldData, Telemetry } from 'shared';
 import { z } from 'zod';
 
@@ -17,7 +18,7 @@ const producer = kafkaClient.producer();
 
 async function start() {
   console.log('Starting Telemetry Ingestion Service...');
-  
+
   // ensure DB is initialized
   await initializeDatabase();
 
@@ -25,21 +26,21 @@ async function start() {
   setInterval(async () => {
     await cleanupOldData();
   }, 5 * 60 * 1000);
-  
+
   await producer.connect();
   await consumer.connect();
   await consumer.subscribe({ topic: 'telemetry.raw', fromBeginning: false });
-  
+
   console.log('Ingestion service connected to Kafka and PostgreSQL. Retention policy (1h) active.');
 
   await consumer.run({
     eachMessage: async ({ message }) => {
       if (!message.value) return;
-      
+
       try {
         const rawData = JSON.parse(message.value.toString());
         const validatedData = telemetrySchema.parse(rawData);
-        
+
         // 1. Insert into DB
         await pool.query(
           `INSERT INTO telemetry (id, timestamp, sensor_id, engine_temperature, engine_vibration, hydraulic_pressure, cabin_pressure, fuel_flow)
@@ -70,7 +71,7 @@ async function start() {
           topic: 'telemetry.validated',
           messages: [{ value: JSON.stringify(validatedData) }]
         });
-        
+
         console.log(`Successfully ingested and validated telemetry ${validatedData.id}`);
       } catch (err) {
         console.error('Validation or ingestion error:', err);
@@ -78,6 +79,21 @@ async function start() {
     }
   });
 }
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get("/", (req, res) => {
+  res.send("Telemetry ingestion service running");
+});
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", service: "telemetry-ingestion" });
+});
+
+app.listen(PORT, () => {
+  console.log(`Health server running on port ${PORT}`);
+});
 
 start().catch(err => {
   console.error('Ingestion service failed:', err);
