@@ -12,26 +12,26 @@ async function processTelemetry(telemetry: Telemetry) {
   const alerts: Alert[] = [];
   const { sensor_id, timestamp, engine_temperature, engine_vibration } = telemetry;
 
-  // 1. Critical Alert: Engine Temperature > 120
-  if (engine_temperature > 120) {
+  // 1. Critical Alert: Engine Temperature > 800
+  if (engine_temperature > 800) {
     alerts.push({
       id: crypto.randomUUID(),
       sensor_id,
       timestamp,
       alert_type: 'CRITICAL',
-      message: 'Engine temperature exceeded critical threshold (120)',
+      message: 'Engine temperature exceeded critical threshold (800°C)',
       value: engine_temperature
     });
   }
 
-  // 2. Warning: Vibration > 5.0
-  if (engine_vibration > 5.0) {
+  // 2. Warning: Vibration > 1.5
+  if (engine_vibration > 1.5) {
     alerts.push({
       id: crypto.randomUUID(),
       sensor_id,
       timestamp,
       alert_type: 'WARNING',
-      message: 'High engine vibration detected',
+      message: 'High engine vibration detected (> 1.5g)',
       value: engine_vibration
     });
   }
@@ -44,8 +44,8 @@ async function processTelemetry(telemetry: Telemetry) {
 
   if (engineTempHistory.length === SMA_WINDOW) {
     const sma = engineTempHistory.reduce((a, b) => a + b, 0) / SMA_WINDOW;
-    // If the diff between current temp and SMA is continuously growing or > 15 without a single spike
-    if (Math.abs(engine_temperature - sma) > 15 && engine_temperature <= 120) {
+    // If the diff between current temp and SMA is continuously growing or > 30 without a single spike
+    if (Math.abs(engine_temperature - sma) > 30 && engine_temperature <= 800) {
       alerts.push({
         id: crypto.randomUUID(),
         sensor_id,
