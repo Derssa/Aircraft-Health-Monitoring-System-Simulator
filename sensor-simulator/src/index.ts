@@ -3,33 +3,49 @@ import { kafkaClient, Telemetry } from 'shared';
 
 const producer = kafkaClient.producer();
 
+function randomInRange(min: number, max: number) {
+  return Math.random() * (max - min) + min;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
 // Base values for normal operation
-let currentTemp = 95;
-let currentVib = 2.5;
-let currentHyd = 3000;
-let currentCabin = 10.5;
+let currentTemp = randomInRange(500, 700);
+let currentVib = randomInRange(0.1, 0.3);
+let currentHyd = randomInRange(2900, 3100);
+let currentCabin = randomInRange(10.5, 11.5);
 let currentFuel = 500;
 
 function generateData(): Telemetry {
   const timestamp = new Date().toISOString();
 
   // Drift and fluctuations
-  currentTemp += (Math.random() - 0.5) * 2;
-  currentVib += (Math.random() - 0.5) * 0.1;
-  currentHyd += (Math.random() - 0.5) * 10;
-  currentCabin += (Math.random() - 0.5) * 0.2;
+  currentTemp += (Math.random() - 0.5) * 5;
+  currentVib += (Math.random() - 0.5) * 0.02;
+  currentHyd += (Math.random() - 0.5) * 50;
+  currentCabin += (Math.random() - 0.5) * 0.1;
   currentFuel += (Math.random() - 0.5) * 5;
+
+  // Clamp values strictly to realistic ranges
+  currentTemp = clamp(currentTemp, 500, 800);
+  currentVib = clamp(Math.abs(currentVib), 0.05, 0.5); // strictly positive
+  currentHyd = clamp(currentHyd, 2800, 3200);
+  currentCabin = Math.max(0, clamp(currentCabin, 10, 12)); // strictly positive
 
   let temp = currentTemp;
   let vib = currentVib;
 
   // Random anomaly injection
   const r = Math.random();
-  if (r < 0.05) { // 5% chance of critical temperature spike
-    temp += 30; // engine_temperature > 120 -> CRITICAL
+  if (r < 0.02) { 
+    // 2% chance of critical temperature spike
+    temp += randomInRange(50, 150); 
   }
-  if (r > 0.05 && r < 0.1) { // 5% chance of warning vibration spike
-    vib += 3; // > threshold -> WARNING
+  if (r > 0.02 && r < 0.04) { 
+    // 2% chance of vibration spike
+    vib += randomInRange(0.6, 2.0); // push into Yellow/Red alert zones
   }
 
   return {
