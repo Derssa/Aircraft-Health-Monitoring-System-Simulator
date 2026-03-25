@@ -10,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Activity, AlertTriangle, Thermometer, Droplets, Wind, Settings, Bell, X } from 'lucide-react';
+import { Activity, AlertTriangle, Thermometer, Droplets, Wind, Settings, Bell, X, Github } from 'lucide-react';
 
 interface Telemetry {
   id: string;
@@ -189,14 +189,28 @@ function App() {
           </div>
         </div>
 
-        <button
-          className="alerts-fab"
-          onClick={() => setShowAlerts(!showAlerts)}
-          aria-label="Toggle alerts"
-        >
-          <Bell size={24} />
-          {alerts.length > 0 && <span className="fab-badge">{alerts.length}</span>}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <a
+            href="https://github.com/Derssa/Aircraft-Health-Monitoring-System-Simulator"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="github-btn"
+            aria-label="View project on GitHub"
+            title="View source code"
+          >
+            <Github size={16} />
+            View on GitHub
+          </a>
+
+          <button
+            className="alerts-fab"
+            onClick={() => setShowAlerts(!showAlerts)}
+            aria-label="Toggle alerts"
+          >
+            <Bell size={24} />
+            {alerts.length > 0 && <span className="fab-badge">{alerts.length}</span>}
+          </button>
+        </div>
       </header>
 
       <div className="dashboard-grid">

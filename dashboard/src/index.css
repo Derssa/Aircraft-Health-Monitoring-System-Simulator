@@ -365,6 +365,28 @@ h1 {
   border: 2px solid var(--bg-main);
 }
 
+/* ── GitHub button ────────────────────────────────────── */
+.github-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #111;
+  color: #fff;
+  padding: 7px 13px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.github-btn:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
 .panel-close-btn {
   background: none;
   border: none;
