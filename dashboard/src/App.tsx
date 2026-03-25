@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { generateTelemetry, generateMockAlert } from './mock/telemetry';
 import {
   LineChart,
   Line,
@@ -30,6 +31,8 @@ interface Alert {
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+
 
 function App() {
   const [telemetry, setTelemetry] = useState<Telemetry[]>([]);
@@ -38,7 +41,21 @@ function App() {
   const [showAlerts, setShowAlerts] = useState(window.innerWidth > 1024);
 
   useEffect(() => {
-    // 1. Initial history fetch
+    if (USE_MOCK) {
+      // ── Mock mode: no backend required ──────────────────────────────────
+      setIsConnected(true);
+      const interval = setInterval(() => {
+        const tel = generateTelemetry();
+        setTelemetry((prev: Telemetry[]) => [...prev.slice(-999), tel]);
+        const alert = generateMockAlert(tel);
+        if (alert) {
+          setAlerts((prev: Alert[]) => [alert, ...prev.slice(0, 999)]);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+
+    // ── Real mode: fetch history then open WebSocket ─────────────────────
     const fetchHistory = async () => {
       try {
         const [telRes, alertsRes] = await Promise.all([
@@ -73,9 +90,7 @@ function App() {
 
     fetchHistory();
 
-    // 2. WebSocket for real-time updates
     const wsUrl = API_URL.replace(/^http/, 'ws');
-
     const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
@@ -160,6 +175,17 @@ function App() {
                 <span style={{ color: 'var(--accent-red)' }}>Offline</span>
               )}
             </div>
+            {USE_MOCK && (
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.05em',
+                color: 'var(--accent-yellow)', background: 'rgba(245,158,11,0.12)',
+                border: '1px solid rgba(245,158,11,0.3)', borderRadius: '999px',
+                padding: '2px 10px', marginTop: '4px'
+              }}>
+                🟡 Simulation Mode (Mock Data)
+              </div>
+            )}
           </div>
         </div>
 
